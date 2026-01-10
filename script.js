@@ -1,3 +1,18 @@
+// 1. Firebase Configuration (Connecting to your cloud)
+const firebaseConfig = {
+  apiKey: "AIzaSyATZNn9wyN5iVRPj6r1nCVWmLo0RnpmsbI",
+  authDomain: "empathy-map-53774.firebaseapp.com",
+  databaseURL: "https://empathy-map-53774-default-rtdb.firebaseio.com/",
+  projectId: "empathy-map-53774",
+  storageBucket: "empathy-map-53774.firebasestorage.app",
+  messagingSenderId: "676023175776",
+  appId: "1:676023175776:web:58aab7b5bca093bf2e1105"
+};
+
+// Initialize Firebase
+firebase.initializeApp(firebaseConfig);
+const database = firebase.database();
+
 const moods = {
     'All': { bg: '#fdfcf9', accent: '#a3b18a', text: '#2d2a26' },
     'Anxious': { bg: '#f4f1de', accent: '#e07a5f', text: '#3d405b' },
@@ -6,21 +21,12 @@ const moods = {
     'Happy': { bg: '#fffcf2', accent: '#eb5e28', text: '#252422' }
 };
 
-let posts = [
-    { text: "Just realized I haven't taken a deep breath all day. Doing it now.", mood: "Hopeful", relates: 5 },
-    { text: "The grocery store was so crowded. My heart wouldn't stop racing.", mood: "Anxious", relates: 12 },
-    { text: "Is it possible to feel lonely even when surrounded by friends?", mood: "Lonely", relates: 42 },
-    { text: "I finally finished the book I've been writing for 3 years!", mood: "Happy", relates: 8 }
-];
-
 // Mouse Tracking Aura
 document.addEventListener('mousemove', (e) => {
     const aura = document.getElementById('aura');
     const x = (e.clientX / window.innerWidth) * 50;
     const y = (e.clientY / window.innerHeight) * 50;
-    aura.style.transform = translate($ { x }
-        px, $ { y }
-        px);
+    if(aura) aura.style.transform = `translate(${x}px, ${y}px)`;
 });
 
 // Theme Engine
@@ -36,28 +42,7 @@ function changeTheme(moodName, btn) {
         document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
     }
-    render(moodName);
-}
-
-// Render Posts
-function render(filter = 'All') {
-    const feed = document.getElementById('feed');
-    feed.innerHTML = '';
-
-    const filteredPosts = filter === 'All' ? posts : posts.filter(p => p.mood === filter);
-
-    filteredPosts.forEach((post, i) => {
-        const card = document.createElement('div');
-        card.className = 'card';
-        card.style.animationDelay = $ { i * 0.1 }
-        s;
-        card.innerHTML = `
-            <span class="card-mood">${post.mood}</span>
-            <p class="card-text">"${post.text}"</p>
-            <button class="relate-btn" onclick="relate(${posts.indexOf(post)})">Relate • ${post.relates}</button>
-        `;
-        feed.appendChild(card);
-    });
+    fetchAndRender(moodName);
 }
 
 // Modal Logic
@@ -65,7 +50,7 @@ function toggleModal(val) {
     document.getElementById('modal').style.display = val ? 'flex' : 'none';
 }
 
-// ✅ Publish New Post (Fixed)
+// ✅ NEW: Save to Firebase (This makes it permanent!)
 function publish() {
     const text = document.getElementById('input').value.trim();
     const mood = document.getElementById('moodSelect').value;
@@ -75,21 +60,56 @@ function publish() {
         return;
     }
 
-    // Add new post to the top
-    posts.unshift({ text, mood, relates: 0 });
+    // This sends the thought to the cloud
+    const newThoughtRef = database.ref('thoughts').push();
+    newThoughtRef.set({
+        text: text,
+        mood: mood,
+        relates: 0,
+        timestamp: Date.now()
+    });
 
-    // Clear input and close modal
     document.getElementById('input').value = '';
     toggleModal(false);
-
-    // Always render the feed with current filter
-    const activeFilter = document.querySelector('.filter-btn.active') ? .innerText || 'All';
-    render(activeFilter);
 }
 
-// Relate Button
-function relate(index) {
-    posts[index].relates++;
-    const activeFilter = document.querySelector('.filter-btn.active') ? .innerText || 'All';
-    render(activeFilter);
+// ✅ NEW: Read from Firebase (This shows everyone's posts)
+function fetchAndRender(filter = 'All') {
+    database.ref('thoughts').on('value', (snapshot) => {
+        const data = snapshot.val();
+        const feed = document.getElementById('feed');
+        feed.innerHTML = '';
+
+        if (!data) return;
+
+        // Convert object to array and reverse to see newest first
+        const postsArray = Object.keys(data).map(key => ({
+            id: key,
+            ...data[key]
+        })).reverse();
+
+        const filteredPosts = filter === 'All' ? postsArray : postsArray.filter(p => p.mood === filter);
+
+        filteredPosts.forEach((post, i) => {
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.style.animationDelay = `${i * 0.1}s`;
+            card.innerHTML = `
+                <span class="card-mood">${post.mood}</span>
+                <p class="card-text">"${post.text}"</p>
+                <button class="relate-btn" onclick="relate('${post.id}', ${post.relates})">Relate • ${post.relates}</button>
+            `;
+            feed.appendChild(card);
+        });
+    });
 }
+
+// Relate Button (Now updates in the cloud)
+function relate(postId, currentRelates) {
+    database.ref('thoughts/' + postId).update({
+        relates: currentRelates + 1
+    });
+}
+
+// Start the app
+fetchAndRender();
