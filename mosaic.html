@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Mood Mosaic | Empathy Map</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <nav>
+        <a href="index.html" class="logo">Empathy Map</a>
+        <div class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="mosaic.html">Mood Mosaic</a>
+            <a href="explore.html">explore</a>
+        </div>
+        <a href="index.html" class="btn-share" style="text-decoration: none;">Share Now</a>
+    </nav>
+
+    <header class="hero" style="text-align:center; padding-top: 5rem;">
+        <h1 style="font-family: 'Lora'; font-size: 2.5rem;">The Community Pulse</h1>
+        <p style="font-family: 'Lora'; font-style: italic; margin-top: 10px; opacity: 0.8;">A collective map of our hearts.</p>
+    </header>
+
+    <main class="mosaic-container">
+        <div style="font-family: 'Lora'; font-size: 1.2rem; display: flex; justify-content: space-between;">
+            <span>Hopeful</span><span>41%</span>
+        </div>
+        <div class="bar-bg">
+            <div class="bar-fill" id="b1"></div>
+        </div>
+
+        <div style="font-family: 'Lora'; font-size: 1.2rem; display: flex; justify-content: space-between;">
+            <span>Anxious</span><span>24%</span>
+        </div>
+        <div class="bar-bg">
+            <div class="bar-fill" id="b2"></div>
+        </div>
+
+        <div style="font-family: 'Lora'; font-size: 1.2rem; display: flex; justify-content: space-between;">
+            <span>Lonely</span><span>15%</span>
+        </div>
+        <div class="bar-bg">
+            <div class="bar-fill" id="b3"></div>
+        </div>
+
+        <div style="text-align: center; margin-top: 40px; font-family: 'Lora'; font-style: italic; opacity: 0.7;">
+            "Hope is leading the way today. You are part of a quiet, resilient strength."
+        </div>
+    </main>
+
+    <button class="theme-toggle" onclick="toggleTheme()" id="theme-btn">🌙</button>
+
+    <script>
+        function toggleTheme() {
+            document.body.classList.toggle('dark-mode');
+            const isDark = document.body.classList.contains('dark-mode');
+            document.getElementById('theme-btn').innerText = isDark ? "☀️" : "🌙";
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+        }
+
+        window.onload = () => {
+            if (localStorage.getItem('theme') === 'dark') toggleTheme();
+            setTimeout(() => {
+                document.getElementById('b1').style.width = '41%';
+                document.getElementById('b2').style.width = '24%';
+                document.getElementById('b3').style.width = '15%';
+            }, 300);
+        };
+    </script>
+</body>
+
+</html>

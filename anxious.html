@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anxious Thoughts</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;500&family=Lora:ital@0;1&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="single-mood">
+
+    <div class="aura" id="aura"></div>
+
+    <nav>
+        <div class="logo">Empathy Map</div>
+        <div class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="anxious.html" class="active">Anxious</a>
+            <a href="hopeful.html">Hopeful</a>
+            <a href="lonely.html">Lonely</a>
+            <a href="happy.html">Happy</a>
+        </div>
+        <button class="btn-share" onclick="toggleModal(true)">Share</button>
+    </nav>
+
+    <header class="hero">
+        <h1>Anxious Thoughts</h1>
+        <div class="filters" id="filters">
+            <button class="filter-btn active" onclick="changeTheme('All', this)">All</button>
+            <button class="filter-btn" onclick="changeTheme('Anxious', this)">Anxious</button>
+            <button class="filter-btn" onclick="changeTheme('Hopeful', this)">Hopeful</button>
+            <button class="filter-btn" onclick="changeTheme('Lonely', this)">Lonely</button>
+            <button class="filter-btn" onclick="changeTheme('Happy', this)">Happy</button>
+        </div>
+    </header>
+
+    <main class="feed" id="feed"></main>
+
+    <div class="modal" id="modal">
+        <div class="modal-box">
+            <h2 style="font-family: Lora;">Release a thought</h2>
+            <textarea id="input" placeholder="No name, just words..."></textarea>
+            <select id="moodSelect" style="padding: 10px; border-radius: 10px; margin-bottom: 20px; width: 100%;">
+            <option value="Anxious">Anxious</option>
+            <option value="Hopeful">Hopeful</option>
+            <option value="Lonely">Lonely</option>
+            <option value="Happy">Happy</option>
+        </select>
+            <button class="btn-share" style="width: 100%;" onclick="publish()">Release into the Map</button>
+            <p style="margin-top: 1rem; cursor: pointer; opacity: 0.5;" onclick="toggleModal(false)">Close</p>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        render('Anxious');
+    </script>
+</body>
+
+</html>
