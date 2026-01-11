@@ -15,11 +15,9 @@ function toggleModal(show) {
     document.getElementById('modal').style.display = show ? 'flex' : 'none';
 }
 
-// Fixed publish: Saves to cloud and handles the quote
 function publish() {
     const text = document.getElementById('input').value;
     const mood = document.getElementById('moodSelect').value;
-    
     if (!text.trim()) return;
 
     database.ref('thoughts').push({
@@ -33,14 +31,12 @@ function publish() {
     toggleModal(false);
 }
 
-// Fixed filterMood: Keeps your original function name
 function filterMood(mood, btn) {
     document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     loadThoughts(mood);
 }
 
-// This function pulls the messages so they stay on refresh
 function loadThoughts(filter = 'All') {
     database.ref('thoughts').on('value', (snapshot) => {
         const data = snapshot.val();
@@ -48,9 +44,11 @@ function loadThoughts(filter = 'All') {
         const quote = document.getElementById('welcome-quote');
         
         feed.innerHTML = '';
-        if (!data) return;
+        if (!data) {
+            if (quote) quote.style.display = 'block';
+            return;
+        }
 
-        // Hide quote if there are posts
         if (quote) quote.style.display = 'none';
 
         const postsArray = Object.keys(data).map(key => ({
@@ -63,6 +61,7 @@ function loadThoughts(filter = 'All') {
             const card = document.createElement('div');
             card.className = 'card';
             card.innerHTML = `
+                <button onclick="deletePost('${post.id}')" style="position:absolute; top:15px; right:20px; border:none; background:#ff4d4d; color:white; border-radius:50%; width:25px; height:25px; cursor:pointer; font-weight:bold;">✕</button>
                 <div style="font-size: 0.7rem; font-weight: bold; color: var(--accent); margin-bottom: 10px;">${post.mood.toUpperCase()}</div>
                 <div class="card-text">${post.text}</div>
                 <button class="relate-btn" onclick="relate('${post.id}', ${post.relates})">Relate • ${post.relates}</button>
@@ -76,5 +75,10 @@ function relate(id, count) {
     database.ref('thoughts/' + id).update({ relates: count + 1 });
 }
 
-// Load thoughts immediately
+function deletePost(postId) {
+    if (confirm("Are you sure you want to delete this thought?")) {
+        database.ref('thoughts/' + postId).remove();
+    }
+}
+
 loadThoughts();
