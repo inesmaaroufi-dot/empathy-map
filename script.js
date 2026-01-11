@@ -1,4 +1,4 @@
-// 1. Firebase Configuration (Connecting to your cloud)
+// 1. Firebase Configuration (Your unique keys)
 const firebaseConfig = {
   apiKey: "AIzaSyATZNn9wyN5iVRPj6r1nCVWmLo0RnpmsbI",
   authDomain: "empathy-map-53774.firebaseapp.com",
@@ -21,14 +21,6 @@ const moods = {
     'Happy': { bg: '#fffcf2', accent: '#eb5e28', text: '#252422' }
 };
 
-// Mouse Tracking Aura
-document.addEventListener('mousemove', (e) => {
-    const aura = document.getElementById('aura');
-    const x = (e.clientX / window.innerWidth) * 50;
-    const y = (e.clientY / window.innerHeight) * 50;
-    if(aura) aura.style.transform = `translate(${x}px, ${y}px)`;
-});
-
 // Theme Engine
 function changeTheme(moodName, btn) {
     const theme = moods[moodName];
@@ -47,20 +39,24 @@ function changeTheme(moodName, btn) {
 
 // Modal Logic
 function toggleModal(val) {
-    document.getElementById('modal').style.display = val ? 'flex' : 'none';
+    const modal = document.getElementById('modal');
+    if (modal) modal.style.display = val ? 'flex' : 'none';
 }
 
-// ✅ NEW: Save to Firebase (This makes it permanent!)
+// ✅ Publish to Firebase (Saves permanently)
 function publish() {
-    const text = document.getElementById('input').value.trim();
-    const mood = document.getElementById('moodSelect').value;
+    const textInput = document.getElementById('input');
+    const moodSelect = document.getElementById('moodSelect');
+    
+    const text = textInput.value.trim();
+    const mood = moodSelect.value;
 
     if (!text) {
         alert("Please write something before releasing it!");
         return;
     }
 
-    // This sends the thought to the cloud
+    // This sends the data to your Firebase database
     const newThoughtRef = database.ref('thoughts').push();
     newThoughtRef.set({
         text: text,
@@ -69,20 +65,21 @@ function publish() {
         timestamp: Date.now()
     });
 
-    document.getElementById('input').value = '';
+    textInput.value = '';
     toggleModal(false);
 }
 
-// ✅ NEW: Read from Firebase (This shows everyone's posts)
+// ✅ Read from Firebase (Shows all posts on refresh)
 function fetchAndRender(filter = 'All') {
     database.ref('thoughts').on('value', (snapshot) => {
         const data = snapshot.val();
         const feed = document.getElementById('feed');
+        if (!feed) return;
+        
         feed.innerHTML = '';
-
         if (!data) return;
 
-        // Convert object to array and reverse to see newest first
+        // Convert data to list and show newest first
         const postsArray = Object.keys(data).map(key => ({
             id: key,
             ...data[key]
@@ -93,9 +90,8 @@ function fetchAndRender(filter = 'All') {
         filteredPosts.forEach((post, i) => {
             const card = document.createElement('div');
             card.className = 'card';
-            card.style.animationDelay = `${i * 0.1}s`;
             card.innerHTML = `
-                <span class="card-mood">${post.mood}</span>
+                <div style="font-size: 0.7rem; font-weight: bold; color: var(--accent); margin-bottom: 10px;">${post.mood.toUpperCase()}</div>
                 <p class="card-text">"${post.text}"</p>
                 <button class="relate-btn" onclick="relate('${post.id}', ${post.relates})">Relate • ${post.relates}</button>
             `;
@@ -104,12 +100,12 @@ function fetchAndRender(filter = 'All') {
     });
 }
 
-// Relate Button (Now updates in the cloud)
+// Relate function
 function relate(postId, currentRelates) {
     database.ref('thoughts/' + postId).update({
         relates: currentRelates + 1
     });
 }
 
-// Start the app
+// Run when page starts
 fetchAndRender();
