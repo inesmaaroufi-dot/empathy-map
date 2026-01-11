@@ -1,4 +1,4 @@
-// 1. Firebase Configuration (Your unique keys)
+// 1. Firebase Configuration
 const firebaseConfig = {
   apiKey: "AIzaSyATZNn9wyN5iVRPj6r1nCVWmLo0RnpmsbI",
   authDomain: "empathy-map-53774.firebaseapp.com",
@@ -21,14 +21,13 @@ const moods = {
     'Happy': { bg: '#fffcf2', accent: '#eb5e28', text: '#252422' }
 };
 
-// Theme Engine
+// Theme Engine & Filter
 function changeTheme(moodName, btn) {
     const theme = moods[moodName];
     const root = document.documentElement;
     root.style.setProperty('--bg-base', theme.bg);
     root.style.setProperty('--accent', theme.accent);
     root.style.setProperty('--text', theme.text);
-    root.style.setProperty('--accent-soft', theme.accent + '22');
 
     if (btn) {
         document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
@@ -37,28 +36,22 @@ function changeTheme(moodName, btn) {
     fetchAndRender(moodName);
 }
 
-// Modal Logic
+// Modal Toggle
 function toggleModal(val) {
     const modal = document.getElementById('modal');
     if (modal) modal.style.display = val ? 'flex' : 'none';
 }
 
-// ✅ Publish to Firebase (Saves permanently)
+// ✅ Save Thought to Firebase (Permanent)
 function publish() {
     const textInput = document.getElementById('input');
     const moodSelect = document.getElementById('moodSelect');
-    
     const text = textInput.value.trim();
     const mood = moodSelect.value;
 
-    if (!text) {
-        alert("Please write something before releasing it!");
-        return;
-    }
+    if (!text) return;
 
-    // This sends the data to your Firebase database
-    const newThoughtRef = database.ref('thoughts').push();
-    newThoughtRef.set({
+    database.ref('thoughts').push({
         text: text,
         mood: mood,
         relates: 0,
@@ -69,17 +62,15 @@ function publish() {
     toggleModal(false);
 }
 
-// ✅ Read from Firebase (Shows all posts on refresh)
+// ✅ Pull Thoughts from Firebase (Visible to all)
 function fetchAndRender(filter = 'All') {
     database.ref('thoughts').on('value', (snapshot) => {
         const data = snapshot.val();
         const feed = document.getElementById('feed');
         if (!feed) return;
-        
         feed.innerHTML = '';
         if (!data) return;
 
-        // Convert data to list and show newest first
         const postsArray = Object.keys(data).map(key => ({
             id: key,
             ...data[key]
@@ -87,11 +78,11 @@ function fetchAndRender(filter = 'All') {
 
         const filteredPosts = filter === 'All' ? postsArray : postsArray.filter(p => p.mood === filter);
 
-        filteredPosts.forEach((post, i) => {
+        filteredPosts.forEach((post) => {
             const card = document.createElement('div');
             card.className = 'card';
             card.innerHTML = `
-                <div style="font-size: 0.7rem; font-weight: bold; color: var(--accent); margin-bottom: 10px;">${post.mood.toUpperCase()}</div>
+                <div style="font-size: 0.7rem; font-weight: bold; color: var(--accent);">${post.mood.toUpperCase()}</div>
                 <p class="card-text">"${post.text}"</p>
                 <button class="relate-btn" onclick="relate('${post.id}', ${post.relates})">Relate • ${post.relates}</button>
             `;
@@ -100,12 +91,10 @@ function fetchAndRender(filter = 'All') {
     });
 }
 
-// Relate function
-function relate(postId, currentRelates) {
-    database.ref('thoughts/' + postId).update({
-        relates: currentRelates + 1
-    });
+// Relate Logic
+function relate(postId, count) {
+    database.ref('thoughts/' + postId).update({ relates: count + 1 });
 }
 
-// Run when page starts
+// Initial Load
 fetchAndRender();
