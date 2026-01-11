@@ -41,15 +41,11 @@ function loadThoughts(filter = 'All') {
     database.ref('thoughts').on('value', (snapshot) => {
         const data = snapshot.val();
         const feed = document.getElementById('feed');
-        const quote = document.getElementById('welcome-quote');
         
         feed.innerHTML = '';
-        if (!data) {
-            if (quote) quote.style.display = 'block';
-            return;
-        }
+        if (!data) return;
 
-        if (quote) quote.style.display = 'none';
+        // Quote hiding logic has been removed here to keep it permanent!
 
         const postsArray = Object.keys(data).map(key => ({
             id: key, ...data[key]
@@ -60,10 +56,9 @@ function loadThoughts(filter = 'All') {
         filtered.forEach(post => {
             const card = document.createElement('div');
             card.className = 'card';
-            card.style.position = 'relative'; // Added to help position the delete button
+            card.style.position = 'relative';
             card.innerHTML = `
                 <button onclick="deletePost('${post.id}')" style="position:absolute; top:15px; right:20px; border:none; background:#ff4d4d; color:white; border-radius:50%; width:25px; height:25px; cursor:pointer; font-weight:bold; z-index:10;">✕</button>
-                
                 <div style="font-size: 0.7rem; font-weight: bold; color: var(--accent); margin-bottom: 10px;">${post.mood.toUpperCase()}</div>
                 <div class="card-text">${post.text}</div>
                 <button class="relate-btn" onclick="relate('${post.id}', ${post.relates})">Relate • ${post.relates}</button>
