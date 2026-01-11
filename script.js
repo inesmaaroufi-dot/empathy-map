@@ -11,6 +11,14 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const database = firebase.database();
 
+// DARK MODE LOGIC IS BACK
+function toggleTheme() {
+    document.body.classList.toggle('dark-mode');
+    const isDark = document.body.classList.contains('dark-mode');
+    document.getElementById('theme-btn').innerText = isDark ? "☀️" : "🌙";
+    localStorage.setItem('theme', isDark ? 'dark' : 'light');
+}
+
 function toggleModal(show) {
     document.getElementById('modal').style.display = show ? 'flex' : 'none';
 }
@@ -41,11 +49,8 @@ function loadThoughts(filter = 'All') {
     database.ref('thoughts').on('value', (snapshot) => {
         const data = snapshot.val();
         const feed = document.getElementById('feed');
-        
         feed.innerHTML = '';
         if (!data) return;
-
-        // Quote hiding logic has been removed here to keep it permanent!
 
         const postsArray = Object.keys(data).map(key => ({
             id: key, ...data[key]
@@ -78,4 +83,8 @@ function deletePost(postId) {
     }
 }
 
-loadThoughts();
+// CHECK SAVED THEME ON LOAD
+window.onload = () => {
+    if (localStorage.getItem('theme') === 'dark') toggleTheme();
+    loadThoughts();
+};
